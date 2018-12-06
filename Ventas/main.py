@@ -3,22 +3,34 @@ CRUD Para ventas hecho con Python
 Jonathan de Jesús Chávez Tabares
 """
 import sys
+import csv
+import os
 
-clients = [
-        {
-            'name':'Pablo',
-            'company':'Google',
-            'email':'pablo@google.com',
-            'position':'SWE'
-        },
+CLIENT_TABLE = 'clients.csv'
+CLIENT_SCHEMA = ['name', 'company', 'email', 'position']
+clients = []
 
-        {
-            'name':'Ricardo',
-            'company':'Facebook',
-            'email':'rick@facebook.com',
-            'position':'Data Engineer'
-        }
-]
+
+def initialize_clients_from_storage():
+    """Carga los clientes de disco a memoria en 'clients'"""
+
+    with open(CLIENT_TABLE, 'r') as f:
+        reader = csv.DictReader(f, fieldnames=CLIENT_SCHEMA)
+        for row in reader:
+            clients.append(row)
+
+
+def save_clients_to_storage():
+    """Genera una tabla temporal y al final escribe en el archivo lo que se hizo en 'clients'"""
+
+    tmp_table = f"{CLIENT_TABLE}.tmp"
+    with open(tmp_table, 'w+') as f:
+        writer = csv.DictWriter(f, fieldnames=CLIENT_SCHEMA)
+        writer.writerows(clients)
+
+        os.remove(CLIENT_TABLE)
+        os.rename(tmp_table, CLIENT_TABLE)
+
 
 def create_client(client):
     global clients
@@ -28,11 +40,13 @@ def create_client(client):
     else:
         print("Client already in the list")
 
+
 def list_clients():
     global clients
     for i, client in enumerate(clients):
-        print(f"{i} | {client['name']} | {client['company']} | {client['email']}"\
-             +f" | {client['position']}")
+        print(f"{i} | {client['name']} | {client['company']} | {client['email']}"
+              + f" | {client['position']}")
+
 
 def _get_client_field(field_name):
     field = None
@@ -57,6 +71,7 @@ def _get_client_name():
 
     return client
 
+
 def _print_welcome():
     print("CompuVentas.net")
     print(50*"*")
@@ -64,6 +79,7 @@ def _print_welcome():
     print("[U]pdate client")
     print("[D]elete client")
     print("[S]earch client")
+
 
 def update_client(client_id, updated_client):
     global clients
@@ -73,6 +89,7 @@ def update_client(client_id, updated_client):
     else:
         print("Client not in clients list")
 
+
 def delete_client(client_id):
     global clients
 
@@ -80,6 +97,7 @@ def delete_client(client_id):
         clients.remove(clients[client_id-1])
     else:
         print("Client not in clients list")
+
 
 def search_client(client_name):
     global clients
@@ -89,18 +107,20 @@ def search_client(client_name):
         else:
             return True
 
+
 def _get_client():
     client = {
-        'name':_get_client_field('name'),
-        'company':_get_client_field('company'),
-        'email':_get_client_field('email'),
-        'position':_get_client_field('position')
-        }
+        'name': _get_client_field('name'),
+        'company': _get_client_field('company'),
+        'email': _get_client_field('email'),
+        'position': _get_client_field('position')
+    }
     return client
 
 
 if __name__ == '__main__':
 
+    initialize_clients_from_storage()
     _print_welcome()
     command = input().upper()
 
@@ -130,3 +150,5 @@ if __name__ == '__main__':
 
     else:
         print("Invalid command")
+
+    save_clients_to_storage()
